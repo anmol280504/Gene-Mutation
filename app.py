@@ -5,8 +5,8 @@ import cloudpickle
 
 # Load pipeline (cached for performance)
 def load_model():
-    with open(r"C:\Users\Anmol\OneDrive\Desktop\Gene-Mutation\models\final_pipelineY.pkl", "rb") as f:
-        return cloudpickle.load(f)
+    with open("models/final_pipelineY.pkl", "rb") as f:
+        model = cloudpickle.load(f)
 
 model = load_model()
 
