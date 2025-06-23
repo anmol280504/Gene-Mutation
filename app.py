@@ -1,18 +1,20 @@
 import streamlit as st
 import pandas as pd
-import joblib
 import cloudpickle
 
-# Load pipeline (cached for performance)
+@st.cache_resource
 def load_model():
-    with open("models/final_pipelineY.pkl", "rb") as f:
-        model = cloudpickle.load(f)
+    try:
+        with open("models/final_pipelineY.pkl", "rb") as f:
+            return cloudpickle.load(f)
+    except Exception as e:
+        st.error(f"Failed to load model: {e}")
+        return None
 
 model = load_model()
 
 st.title("Gene Mutation Classifier")
 
-# All columns including target
 all_cols = ['CHROM', 'POS', 'REF', 'ALT', 'AF_ESP', 'AF_EXAC', 'AF_TGP', 'CLNDISDB',
             'CLNDN', 'CLNHGVS', 'CLNVC', 'MC', 'ORIGIN', 'CLASS', 'Allele', 'Consequence',
             'IMPACT', 'SYMBOL', 'Feature_type', 'Feature', 'BIOTYPE', 'EXON', 'cDNA_position',
@@ -22,12 +24,8 @@ all_cols = ['CHROM', 'POS', 'REF', 'ALT', 'AF_ESP', 'AF_EXAC', 'AF_TGP', 'CLNDIS
 target = 'PolyPhen'
 input_cols = [c for c in all_cols if c != target]
 
-st.title("Predict PolyPhen using your Pipeline")
-
-# Prepare input dictionary
 inputs = {}
 
-# You can customize input types here based on your knowledge of each feature:
 numerical_cols = ['POS', 'AF_ESP', 'AF_EXAC', 'AF_TGP', 'ORIGIN', 'CLASS', 'STRAND', 'LoFtool',
                   'CADD_PHRED', 'CADD_RAW', 'BLOSUM62']
 categorical_cols = [c for c in input_cols if c not in numerical_cols]
@@ -40,21 +38,14 @@ st.header("Categorical Features")
 for col in categorical_cols:
     inputs[col] = st.text_input(col, "")
 
-# When button is clicked:
 if st.button("Predict"):
-    # Create DataFrame for prediction
     input_df = pd.DataFrame([inputs])
-
-    # Reorder columns as required
     input_df = input_df[input_cols]
-
-    # Predict with pipeline
-    prediction = model.predict(input_df)
-    prediction_proba = model.predict_proba(input_df)
-
-    st.subheader("Prediction Result")
-    if prediction[0] == 0:
-        st.write("Predicted PolyPhen class: Benign")
+    if model:
+        prediction = model.predict(input_df)
+        prediction_proba = model.predict_proba(input_df)
+        st.subheader("Prediction Result")
+        label = "Benign" if prediction[0] == 0 else "Pathogenic"
+        st.write(f"Predicted PolyPhen class: {label}")
     else:
-        st.write("Predicted PolyPhen class: Pathogenic")
-
+        st.error("Model not loaded. Please check the file path or model format.")
