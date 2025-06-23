@@ -10,6 +10,8 @@ def load_model():
 
 model = load_model()
 
+st.title("Gene Mutation Classifier")
+
 # All columns including target
 all_cols = ['CHROM', 'POS', 'REF', 'ALT', 'AF_ESP', 'AF_EXAC', 'AF_TGP', 'CLNDISDB',
             'CLNDN', 'CLNHGVS', 'CLNVC', 'MC', 'ORIGIN', 'CLASS', 'Allele', 'Consequence',
